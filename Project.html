@@ -1,0 +1,104 @@
+<!doctype html>
+<html>
+    <style>
+    .card{
+        width:300px;
+
+        padding:10px;
+        margin:10px;
+        display:inline-block;
+        border-radius:10px;
+        box-shadow:black 5px 5px 5px;
+        background-color: white
+    }
+    h1{
+        font-family:"Arial";
+        text-shadow:gray 2px 2px 2px;
+    }
+    p,a{
+        font-size:14pt;
+        font-family:"Arial";
+    }
+
+    a{
+        background-color:blue;
+        text-decoration:none;
+        color:white;
+        font-weight:bold;
+        padding:5px;
+        border-radius:10px;
+        box-shadow:black 5px 5px 5px;
+    }
+
+    body {
+    background-image: url("background.png");
+    }
+</style>
+    <script src = "https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.3.0/mustache.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAwcRSav1kD1f8IArVpDJtX9Y3Nd__1fyE"></script>
+    <script type = "text/template" id = "template">
+        <div class = "card">
+            <h1> {{ incident_type }} </h1>
+            <p> Date: {{creation_date}} </p>
+            <p> {{ location }}, {{ borough }}</p>
+            <button onclick = "myMap({{ latitude }}, {{ longitude }})"> MAP </button>
+            
+        </div>
+    </script>
+    <script>
+        var data;
+        function search(){
+            $.getJSON("https://data.cityofnewyork.us/resource/a6b3-u8ax.json", function(results){
+                data = results;
+
+            })
+        }
+        function myMap(lat,lng) {
+        var mapCanvas = document.getElementById("googleMap");
+        var myCenter = new google.maps.LatLng(lat,lng); 
+        var mapOptions = {center: myCenter, zoom: 18};
+        var map = new google.maps.Map(mapCanvas,mapOptions);
+        var marker = new google.maps.Marker({
+            position: myCenter,
+            icon: "emergencyresponse3.png",
+            animation:google.maps.Animation.BOUNCE
+        });
+        marker.setMap(map);
+        }  
+
+       
+    
+
+      
+        
+        function display(){
+            var template = document.getElementById("template").innerHTML
+            var build = ""
+            var output = document.getElementById("output")
+            var borough = document.getElementById("borough")
+            var incidenttype = document.getElementById("incidenttype")
+            for(var index = 0; index < data.length; index++){
+                if(data[index].borough == borough.value && data[index].incident_type.toLowerCase().indexOf(incidenttype.value.toLowerCase()) != -1 ){
+                    build += Mustache.render(template, data[index])
+                    
+                }
+            }
+            output.innerHTML = build
+        }
+    </script>
+    <body onload = "search()">
+        <div class = "webdesign">
+            <h1 style="text-align:center;font-family:Courier New, Courier, monospace;color:white;background-color:#E6413D;font-size:300%"><u> Emergency Response Incidents </u></h1>
+            <p style="text-align:center;font-family:Courier New, Courier, monospace;color:white;font-size:200%;background-color:#E6413D"> The type and address of emergency incidents to when OEM (Original Equipment Manufacturer) responded </p>
+        </div>
+        <input id = "borough" type = "text" placeholder = "Enter Borough" style = "height:20px">
+        <input id = "incidenttype" type = "text" placeholder = "Enter Incident Type" style = "height:20px">
+        <button onclick = "display()" style = "height:26px"> Submit </button>
+        <div id="googleMap" style="width:100%;height:400px;"></div>
+        <div id = "output"></div>
+        
+        
+    </body>
+    
+</html>
